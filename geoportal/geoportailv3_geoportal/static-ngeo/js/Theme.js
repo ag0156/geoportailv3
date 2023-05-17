@@ -6,6 +6,7 @@
  */
 
 import appModule from './module.js';
+import { useThemeStore } from "luxembourg-geoportail/bundle/lux.dist.mjs";
 
 /**
  * @constructor
@@ -103,7 +104,8 @@ exports.prototype.setCurrentTheme = function(themeId) {
  * @return {string} themeId The id of the theme.
  */
 exports.prototype.getCurrentTheme = function() {
-  return this.currentTheme_;
+  return useThemeStore().themeName;
+  // return this.currentTheme_;
 };
 
 /**

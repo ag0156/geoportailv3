@@ -33,7 +33,8 @@ import 'angular-dynamic-locale';
 import { app, App, i18next as Luxi18next, createElementInstance, defineCustomElement, 
   createPinia, VueDOMPurifyHTML, backend, I18NextVue, DropdownList, LayerManager, CatalogTree, ThemeSelector,
   MapContainer, BackgroundSelector, LayerMetadata, RemoteLayers, HeaderBar, 
-  useMap, useThemeStore, statePersistorLayersService, statePersistorThemeService } 
+  useMap, useThemeStore, statePersistorLayersService, statePersistorThemeService,
+  themeSelectorService, currentTheme } 
   from "luxembourg-geoportail/bundle/lux.dist.mjs";
 
 // const app = createApp(App)
@@ -50,9 +51,10 @@ customElements.define('catalog-tree', CatalogElement)
 // - do not use ThemeSelector for now, but let legacy switcher handle url and theme color
 // - change theme content and color of custom elements in ThemeswitcherController via useThemeStore() and themeSelectorService
 // - once the new themes will be used useThemeStore().theme will need to provide theme to appTheme_.getCurrentTheme()
-// statePersistorThemeService.bootstrap()
-// const ThemeSelectorElement = createElementInstance(ThemeSelector, app)
-// customElements.define('theme-selector', ThemeSelectorElement)
+// - as long as legacy components are used, changing theme will also need to trigger appTheme_.setCurrentTheme()
+statePersistorThemeService.bootstrap()
+const ThemeSelectorElement = createElementInstance(ThemeSelector, app)
+customElements.define('theme-selector', ThemeSelectorElement)
 
 const LayerManagerElement = createElementInstance(LayerManager, app)
 customElements.define('layer-manager', LayerManagerElement)
@@ -1043,6 +1045,8 @@ const MainController = function(
    */
   this.isColorVisible = true;
 
+  this.currentTheme = useThemeStore().themeName;
+
   /**
    * @const {?app.olcs.Lux3DManager}
    * @export
@@ -1198,6 +1202,11 @@ const MainController = function(
       } else {
         this['lidarOpen'] = false;
       }
+    });
+    $scope.$watch(() => {
+      return currentTheme;
+    }, currentTheme => {
+      themeSelectorService.setCurrentThemeColors(currentTheme.name)
     });
     $scope.$watch(() => {
       return this['mymapsOpen'] || this['infosOpen'] ||
@@ -1791,7 +1800,10 @@ MainController.prototype.getCurrentTheme = function() {
  * @export
  */
 MainController.prototype.getEncodedCurrentTheme = function() {
-  return this.appTheme_.encodeThemeName(this.appTheme_.getCurrentTheme());
+  const theme = this.appTheme_.encodeThemeName(this.appTheme_.getCurrentTheme());
+  // const theme = this.appTheme_.getCurrentTheme();
+  console.log(theme);
+  return theme;
 };
 
 /**
